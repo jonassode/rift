@@ -1,34 +1,4 @@
-rift.JOB_WALK = {type: 1};
-
-rift.JOB_WALK.work = function(job, worker){
-    // Release the worker
-    worker.state = rift.STATE_IDLE;
-    // Remove myself from job list
-    job.die();
-}
-rift.JOB_WALK.legal = function(job){
-    if ( rift.tile_map.check(job.col, job.row, "blocking", false )){
-        return true;
-    } else {
-        return false;
-    }
-}
-
-rift.JOB_BUILD = {type: 2};
-rift.JOB_BUILD.work = function(job, worker){
-    // Release the worker
-    worker.state = rift.STATE_BUILDING;
-    // Change image
-    job.setImage( job.anim_build.next() )
-}
-rift.JOB_BUILD.legal = function(job){
-    if ( rift.tile_map.check(job.col, job.row, "blocking", false )){
-        return true;
-    } else {
-        return false;
-    }
-}
-
+// Constructor
 rift.job = function(type, target, col, row){
 
     var object = {};
@@ -80,4 +50,40 @@ rift.job = function(type, target, col, row){
 
     return object;
 };
+
+// LIST OF JOBS BASED ON ID
+
+// 1 - WALK
+rift.JOB_WALK = {type: 1};
+rift.JOB_WALK.work = function(job, worker){
+    // Release the worker
+    worker.state = rift.STATE_IDLE;
+    // Remove myself from job list
+    job.die();
+}
+rift.JOB_WALK.legal = function(job){
+    if ( rift.tile_map.check(job.col, job.row, "blocking", false )){
+        return true;
+    } else {
+        return false;
+    }
+}
+
+// 2 - BUILD
+rift.JOB_BUILD = {type: 2};
+rift.JOB_BUILD.work = function(job, worker){
+    // Release the worker
+    worker.state = rift.STATE_IDLE;
+    // Kill Job
+    job.die();
+}
+rift.JOB_BUILD.legal = function(job){
+    if ( rift.tile_map.check(job.col, job.row, "blocking", false )){
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
 
