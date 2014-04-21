@@ -136,7 +136,7 @@ rift.robot = function(x, y){
     object.state = rift.STATE_IDLE;
     object.list = rift.workers;    
 
-        var anim = new jaws.Animation({sprite_sheet: "images/ranger_32x32.png", frame_size: [32,32], frame_duration: 100})
+        var anim = new jaws.Animation({sprite_sheet: "images/ranger_32x32.png", frame_size: [32,32], frame_duration: 300})
         object.anim_default = anim.slice(0,5)
         object.anim_up = anim.slice(6,8)
         object.anim_down = anim.slice(8,10)
