@@ -51,7 +51,7 @@
         
         rift.workers.forEach(
             function( worker ){
-                jslos.calculate_line_of_sight(m, worker.location(), 5);
+                jslos.calculate_line_of_sight(m, worker.location(), rift.view);
             }
         );
     
