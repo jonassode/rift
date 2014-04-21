@@ -1,8 +1,9 @@
 rift.JOB_WALK = {type: 1};
+
 rift.JOB_WALK.work = function(job, worker){
     // Release the worker
     worker.state = rift.STATE_IDLE;
-    // Remove myself from joblist
+    // Remove myself from job list
     job.die();
 }
 rift.JOB_WALK.legal = function(job){
@@ -32,18 +33,18 @@ rift.job = function(type, target, col, row){
 
     var object = {};
 
-        object = new jaws.Sprite({x:col*rift.cell_size, y:row*rift.cell_size, scale: 1})
+    object = new jaws.Sprite({x:col*rift.cell_size, y:row*rift.cell_size, scale: 1})
     object.started = false;
     object.type = type;
     object.col = col;
     object.row = row;
     object.target = target;
 
-        var anim = new jaws.Animation({sprite_sheet: "images/job_default.png", frame_size: [rift.cell_size,rift.cell_size], frame_duration: 100})
-        object.anim_default = anim.slice(0,1)
-        object.anim_build = anim.slice(1,9)
+    var anim = new jaws.Animation({sprite_sheet: "images/job_default.png", frame_size: [rift.cell_size,rift.cell_size], frame_duration: 100})
+    object.anim_default = anim.slice(0,1)
+    object.anim_build = anim.slice(1,9)
 
-        object.setImage( object.anim_default.next() );
+    object.setImage( object.anim_default.next() );
 
     object.add = function(){
         rift.jobs.push(this);
