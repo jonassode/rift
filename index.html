@@ -10,8 +10,8 @@
     <script src="rift.js"></script>
     <script src="rift_main.js"></script>
     <script src="spacebaserobots.js"></script>
-    <script src="spacebasejobs.js"></script>
-    <script src="spacebasemenu.js"></script>
+    <script src="jobs.js"></script>
+    <script src="action_menu.js"></script>
     <script src="spacebasebuildings.js"></script>
 
     <link type="text/css" rel="stylesheet" href="style.css" />
@@ -20,7 +20,7 @@
 <body>
 
   <image src="images/rift_logo.png">
-  <canvas width=840 height=480 onclick="x();"></canvas>
+  <canvas width=840 height=480 onclick="clickTile();"></canvas>
   FPS: <span id="fps"></span>. Turn: <span id="turn">1</span>
   <button onclick="calculate_line_of_sight();">End Turn</button> 
   <div id="info">
@@ -33,9 +33,12 @@
  
   <script>
 
+  function getSelectedWorker( ){
+      return rift.selected_worker;
+  }
     
-    function getAvailableWorker( goal ){
-        var workers = rift.workers;
+  function getAvailableWorker( goal ){
+      var workers = rift.workers;
         var availableWorker;
         var steps;
         var shortest_path;
@@ -69,33 +72,64 @@
         }
     }
 
-    function x(){
+	function deleteJobs( worker ){
+        rift.jobs.forEach(function(job){
+            // delete job
+			if ( job.worker == worker){
+				job.die();
+			}
+        });		
+		
+	}
 
+
+	function clickTile(){
         // Get Coordinates
         var col = getTileNoFromCord(jaws.mouse_x);
         var row = getTileNoFromCord(jaws.mouse_y);
 
-        // Create Job
+        // Check for TileMap
         if ( withinTileMap(col, row)){
+			// Check for Unit
+			var unit = rift.tile_map.unit(col, row);
+			if ( unit ) {
+				unit.select_item();
+			} else {
+				// Create Job
+				createJob(col, row);
+			}
+			
+		} else {
+        	// Check click for menu.
+        	rift.action_menu.select_item(jaws.mouse_x, jaws.mouse_y);
+    	}
+	}
+
+    function createJob(col, row){
+
             // Check if there is a job at this place.
             var job = rift.tile_map.job(col, row);
             // Job exists on this place we remove it
             if ( job ){
-                job.die();
+				job.die();
             // Else we create one
             } else if ( rift.selection.item ){
-                var job = rift.job(rift.selection.item.jobtype, rift.selection.item.target, col, row);
-                // Add Job to jobs list
-                if ( job.type.legal(job) ){
-                    job.add();
-                }
+				
+                var job = rift.job(rift.selection.item.jobtype, col, row);
+				addJob(job, getSelectedWorker());
             }
-        } else {
-            // Check click for menu.
-            rift.action_menu.select_item(jaws.mouse_x, jaws.mouse_y);
-        }
-
     }
+	
+	function addJob(job, worker){
+        // Add Job to jobs list
+        if ( job.type.legal(job) ){
+            job.add();
+			// Kill other jobs
+			deleteJobs( worker );
+			// Start job
+			job.start( worker );
+        }		
+	}
 
     function getTileNoFromCord(cord){
         return Math.floor(cord / rift.tile_map.cell_size[0]);
@@ -123,7 +157,8 @@
     jaws.onload = function() {
         jaws.unpack()
         jaws.assets.add([
-            "images/ranger_32x32.png",
+            "images/unit_ranger_32x32.png",
+            "images/unit_civilian_32x32.png",
             "images/droid_32x32.png",
             "images/block.png",
             "images/dirt.png",

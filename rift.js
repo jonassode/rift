@@ -9,11 +9,8 @@ rift.buildings = new jaws.SpriteList();
 rift.blocks = new jaws.SpriteList();
 rift.action_menu = undefined;
 
-// Starting Turn
-rift.turn = 1;
-
 // How far is default view
-rift.view = 15;
+rift.view = 10;
 
 // Directions
 var directions = new Array();

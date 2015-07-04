@@ -3,7 +3,6 @@ rift.STATE_WALKING = 1;
 rift.STATE_BUILDING = 2;
 
 
-
 rift.missile = function(x, y){
     var object = {};
         object = new jaws.Sprite({x:x, y:y, anchor:"center"})
@@ -76,6 +75,11 @@ rift.unit = function(x, y){
         // Update Damage Bar
         this.bar.x = this.x;
         this.bar.y = this.y;
+		
+		// Move Selection
+		if ( rift.unit_selection.item == this ){
+			this.update_selection();
+		}
     }
     
     object.location = function(){
@@ -97,14 +101,27 @@ rift.unit = function(x, y){
         this.list.remove(this);
     }
 
+
+	object.update_selection = function() {
+        rift.unit_selection.x = this.x;
+        rift.unit_selection.y = this.y;
+	}
+
+    object.select_item = function(){
+
+        rift.unit_selection.item = object;
+		this.update_selection();
+		rift.selected_worker = object;
+    }
+
     return object;
 }
 
 rift.enemy = function(x, y){
     var object = new rift.unit(x,y);
 
-        var anim = new jaws.Animation({sprite_sheet: "images/enemy_ball.png", frame_size: [32,32], frame_duration: 100})
-        object.anim_default = anim.slice(0,5)
+    var anim = new jaws.Animation({sprite_sheet: "images/enemy_ball.png", frame_size: [32,32], frame_duration: 100})
+    object.anim_default = anim.slice(0,5)
     object.setImage( object.anim_default.next() );
 
     object.list = rift.units;    
@@ -126,8 +143,28 @@ rift.enemy = function(x, y){
     return object;
 }
 
+rift.civilian = function(x, y){
+	var object = rift.robot(x, y, "images/unit_civilian_32x32.png");
+	
+    object.idle = function(){
+        this.setImage( this.anim_default.next() );
+		// Find a random place to go
+		col = Math.floor((Math.random() * rift.tile_map.size[0]) );
+		row = Math.floor((Math.random() * rift.tile_map.size[1]) );
+        var job = rift.job(rift.JOB_WALK, col, row);
+		
+		jaws.log("Col:"+col+ " Row:"+row)
+		addJob(job, this);
+    }
+	
+	return object;
+}
 
-rift.robot = function(x, y){
+rift.ranger = function(x, y){
+	return rift.robot(x, y, "images/unit_ranger_32x32.png");
+}
+
+rift.robot = function(x, y, image){
 
     var object = new rift.unit(x,y);
 
@@ -136,15 +173,15 @@ rift.robot = function(x, y){
     object.state = rift.STATE_IDLE;
     object.list = rift.workers;    
 
-        var anim = new jaws.Animation({sprite_sheet: "images/ranger_32x32.png", frame_size: [32,32], frame_duration: 300})
-        object.anim_default = anim.slice(0,5)
-        object.anim_up = anim.slice(6,8)
-        object.anim_down = anim.slice(8,10)
-        object.anim_left = anim.slice(10,12)
-        object.anim_right = anim.slice(12,14)
-        object.anim_build = anim.slice(15,17)
+    var anim = new jaws.Animation({sprite_sheet: image, frame_size: [32,32], frame_duration: 300})
+    object.anim_default = anim.slice(0,5)
+    object.anim_up = anim.slice(6,8)
+    object.anim_down = anim.slice(8,10)
+    object.anim_left = anim.slice(10,12)
+    object.anim_right = anim.slice(12,14)
+    object.anim_build = anim.slice(15,17)
 
-        object.setImage( object.anim_default.next() );
+    object.setImage( object.anim_default.next() );
 
     object.act = function(){
         switch(this.state)
@@ -154,6 +191,9 @@ rift.robot = function(x, y){
           break;
         case rift.STATE_WALKING:
           this.walk();
+          break;
+        case rift.STATE_SHOOTING:
+          this.shoot();
           break;
         case rift.STATE_BUILDING:
           this.build();
@@ -175,7 +215,6 @@ rift.robot = function(x, y){
         alert(1);
 
         var matrix = exportTileMapToPathMatrix();
-
     }
     
     object.find_path = function(goal){
@@ -205,6 +244,14 @@ rift.robot = function(x, y){
         this.job = undefined;
         this.progress = 0;
     }
+
+    object.shoot = function(){
+        if ( this.state == rift.SHOOTING ){
+			jaws.log("Pang 2");
+		}
+		// Kill job
+		this.job.die();
+	}
 
     object.walk = function(){
         if ( this.state == rift.STATE_WALKING ){
