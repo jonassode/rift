@@ -13,7 +13,7 @@ rift.action_menu = undefined;
 rift.view = 10;
 
 // Directions
-var directions = new Array();
+var directions = [];
 directions.push( {row: 0, col: -1 } );
 directions.push( {row: 0, col: 1 } );
 directions.push( {row: -1, col: 0 } );
@@ -46,7 +46,7 @@ function calculate_line_of_sight(){
             if ( losmatrix[row][col] === jslos.BLOCKED ){
                 var x = col*rift.cell_size;
                 var y = row*rift.cell_size;
-                rift.blocker_tiles.push( new Sprite({image: "images/dark.png", x: x, y: y }) )
+                rift.blocker_tiles.push( new Sprite({image: "images/dark.png", x: x, y: y }) );
             }
         }
     }

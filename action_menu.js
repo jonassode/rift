@@ -1,14 +1,15 @@
 
 // Used to hold the selection in the menu
-rift.selection
+rift.selection = null;
 
 // The Menu Object
+// Draws a menu on x and y coordinates
 rift.menu = function(x, y){
 
     rift.selection = new Sprite({image: "images/button__selector.png" });
 
     var object = {};
-    object = new jaws.SpriteList()
+    object = new jaws.SpriteList();
     object.x = x;
     object.y = y;
     object.items = 0;
@@ -21,7 +22,7 @@ rift.menu = function(x, y){
         this.items++;
         this.push(item);
 
-    }
+    };
 
     object.select_item = function(x,y){
         this.forEach(function(item){
@@ -31,8 +32,8 @@ rift.menu = function(x, y){
                 rift.selection.x = item.x;
                 rift.selection.y = item.y;
             }
-        })
-    }
+        });
+    };
     
     return object;
 };

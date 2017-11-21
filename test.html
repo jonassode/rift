@@ -49,14 +49,14 @@
 						text = text + "</span>";
 					} else if (losmatrix[row][col] === jslos.BLOCKED){
 						text = text + "<SPAN style='background-color:silver'>";
-						text = text + "&nbsp;"
+						text = text + "&nbsp;";
 						text = text + "</span>";
 					} else if (losmatrix[row][col] === jslos.CENTER){
-                                                text = text + "<SPAN style='background-color:yellow'>";
+                        text = text + "<SPAN style='background-color:yellow'>";
 						text = text + "@"
-                                                text = text + "</span>";
+                        text = text + "</span>";
 					} else {
-						if ( jslos.viewed_tiles[row+ '-'+col] != undefined && show_viewed === true){
+						if ( jslos.viewed_tiles[row+ '-'+col] !== undefined && show_viewed === true){
 							text = text + jslos.viewed_tiles[row+ '-'+col];
 						} else {
 							text = text + "&nbsp;";

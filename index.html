@@ -9,156 +9,44 @@
     <script src="jaws.js"></script>
     <script src="rift.js"></script>
     <script src="rift_main.js"></script>
+		<script src="dom-interactions.js"></script>
     <script src="spacebaserobots.js"></script>
     <script src="jobs.js"></script>
     <script src="action_menu.js"></script>
-    <script src="spacebasebuildings.js"></script>
+    <script src="rift_buildings.js"></script>
+		<script src="index.js"></script>
+		<script src="rift_turns.js"></script>
 
     <link type="text/css" rel="stylesheet" href="style.css" />
     <title>Rift</title>
   </head>
-<body>
-
-  <image src="images/rift_logo.png">
-  <canvas width=840 height=480 onclick="clickTile();"></canvas>
-  FPS: <span id="fps"></span>. Turn: <span id="turn">1</span>
-  <button onclick="calculate_line_of_sight();">End Turn</button> 
-  <div id="info">
-    Welcome to Rift, a turn based party tactics/strategy game.<br>
-    <br>
-  </div>
-  
-  <h3>jaws log</h3>
-  <div id="jaws-log"></div>
- 
-  <script>
-
-  function getSelectedWorker( ){
-      return rift.selected_worker;
-  }
-    
-  function getAvailableWorker( goal ){
-      var workers = rift.workers;
-        var availableWorker;
-        var steps;
-        var shortest_path;
-
-        workers.forEach(
-            function( worker ){
-                if( worker.state == rift.STATE_IDLE ){
-                    if ( goal ){
-                        var path = worker.find_path( goal );
-                        if ( path.length > 0 && ( !steps || steps > path.length )){                
-                            availableWorker = worker;
-                            shortest_path = path;
-                            steps = path.length;
-                        }
-                    } else {
-                        availableWorker = worker;
-                    }
-                };
-            }
-        );
-
-        return availableWorker;
-    }
-
-    function withinTileMap( col, row ){
-
-        if ( col >= 0 && col < rift.tile_map.size[0] && row >= 0 && row < rift.tile_map.size[1] ){
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-	function deleteJobs( worker ){
-        rift.jobs.forEach(function(job){
-            // delete job
-			if ( job.worker == worker){
-				job.die();
-			}
-        });		
+	<body>
+		<img src="images/rift_logo.png">
+		<canvas width=840 height=480 onclick="clickTile();" ></canvas>
+		FPS: <span id="fps" ></span>.<br />
+		Turn: <span id="turn">1</span>.<br />
+		Action points: <span id="action-points">-</span>.<br />
+		<button onclick="rift.end_turn();" />
+			End Turn
+		</button> 
+		<div id="info">
+			Welcome to Rift, a turn based party tactics/strategy game.<br />
+			<br />
+		</div>
 		
-	}
-
-
-	function clickTile(){
-        // Get Coordinates
-        var col = getTileNoFromCord(jaws.mouse_x);
-        var row = getTileNoFromCord(jaws.mouse_y);
-
-        // Check for TileMap
-        if ( withinTileMap(col, row)){
-			// Check for Unit
-			var unit = rift.tile_map.unit(col, row);
-			if ( unit ) {
-				unit.select_item();
-			} else {
-				// Create Job
-				createJob(col, row);
-			}
-			
-		} else {
-        	// Check click for menu.
-        	rift.action_menu.select_item(jaws.mouse_x, jaws.mouse_y);
-    	}
-	}
-
-    function createJob(col, row){
-
-            // Check if there is a job at this place.
-            var job = rift.tile_map.job(col, row);
-            // Job exists on this place we remove it
-            if ( job ){
-				job.die();
-            // Else we create one
-            } else if ( rift.selection.item ){
-				
-                var job = rift.job(rift.selection.item.jobtype, col, row);
-				addJob(job, getSelectedWorker());
-            }
-    }
-	
-	function addJob(job, worker){
-        // Add Job to jobs list
-        if ( job.type.legal(job) ){
-            job.add();
-			// Kill other jobs
-			deleteJobs( worker );
-			// Start job
-			job.start( worker );
-        }		
-	}
-
-    function getTileNoFromCord(cord){
-        return Math.floor(cord / rift.tile_map.cell_size[0]);
-    }
-
-    function exportTileMapToPathMatrix(){
-        var cols = rift.tile_map.size[0]
-        var rows = rift.tile_map.size[1]
-        var matrix = jspath.create_matrix(rows,cols);
-        var cell_size = rift.tile_map.cell_size[0];
-
-        for( row = 0; row < matrix.length; row++) {
-            for( col = 0; col < matrix[row].length; col++) {
-                // Set it to walkable ( 1 ) by default
-                matrix[row][col] = 1;            
-                
-                if ( rift.tile_map.check(col,row, "blocking", true)) {
-                    matrix[row][col] = 0;
-                }
-            }
-        }
-        return matrix;
-    }
-    
+		<h3>jaws log</h3>
+		<div id="jaws-log" />
+	 
+		
+		<script >
+					// Load all the graphical assests
     jaws.onload = function() {
-        jaws.unpack()
+        jaws.unpack();
         jaws.assets.add([
+            "images/unit_selector_red.png",
             "images/unit_ranger_32x32.png",
             "images/unit_civilian_32x32.png",
+            "images/unit_alien1_32x32.png",
             "images/droid_32x32.png",
             "images/block.png",
             "images/dirt.png",
@@ -175,12 +63,12 @@
             "images/health_bar.png",
             "images/dark.png",
             "images/button_end_turn.png"
-        ])
-    jaws.start(Main)  // Our convenience function jaws.start() will load assets, call setup and loop update/draw in 60 FPS
+        ]);
+    jaws.start(Main);  // Our convenience function jaws.start() will load assets, call setup and loop update/draw in 60 FPS
 
-}
-</script>
-
-</body>
+}; 
+		</script>
+		
+	</body>
 </html>
 

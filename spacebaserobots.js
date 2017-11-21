@@ -2,39 +2,38 @@ rift.STATE_IDLE = 0;
 rift.STATE_WALKING = 1;
 rift.STATE_BUILDING = 2;
 
-
 rift.missile = function(x, y){
     var object = {};
-        object = new jaws.Sprite({x:x, y:y, anchor:"center"})
+    object = new jaws.Sprite({x:x, y:y, anchor:"center"});
 
     object.damage = 40;
 
-        var anim = new jaws.Animation({sprite_sheet: "images/missile_plasma.png", frame_size: [11,11], frame_duration: 100})
-        object.anim_default = anim.slice(0,3)
-    object.anim_default.next()
+    var anim = new jaws.Animation({sprite_sheet: "images/missile_plasma.png", frame_size: [11,11], frame_duration: 100});
+    object.anim_default = anim.slice(0,3);
+    object.anim_default.next();
 
     object.act = function(){
-        this.setImage( this.anim_default.next() )
-            this.y += 2
+        this.setImage( this.anim_default.next() );
+        this.y += 2;
 
         var collisions = jaws.collideOneWithMany(object, rift.workers);
         if ( collisions.length > 0 ){
             var damage = this.damage;
             collisions.forEach(function(item){
                 item.damage(damage);
-            })
+            });
             this.die();
         }
         
         if ( this.y > (rift.tile_map.size[1] * rift.tile_map.cell_size[1]) ){
             this.die();
         }
-    }
+    };
 
     object.die = function(){
         this.parent.missile = undefined;
         rift.units.remove(this);
-    }
+    };
 
     return object;
 
@@ -43,7 +42,7 @@ rift.missile = function(x, y){
 rift.bar = function(x, y){
     var object = new jaws.Sprite({x:x, y:y});
 
-    var anim = new jaws.Animation({sprite_sheet: "images/health_bar.png", frame_size: [32,4], frame_duration: 100})
+    var anim = new jaws.Animation({sprite_sheet: "images/health_bar.png", frame_size: [32,4], frame_duration: 100});
     object.anim_default = anim.slice(0,10);
     object.setImage( object.anim_default.next() );
 
@@ -53,14 +52,14 @@ rift.bar = function(x, y){
         if ( frame < 0 ) { frame = 0; }
         if ( frame > 10 ) { frame = 10; }
         this.setImage(this.anim_default.frames[frame]);
-    }
+    };
 
     return object;
-}
+};
 
 rift.unit = function(x, y){
     var object = {};
-    object = new jaws.Sprite({x:x, y:y})
+    object = new jaws.Sprite({x:x, y:y});
     
     object.health = 100;
     object.bar = new rift.bar(x, y);
@@ -69,8 +68,8 @@ rift.unit = function(x, y){
 
     object.move = function(x, y) {
         // Increment X an Y        
-        this.x += x
-        this.y += y
+        this.x += x;
+        this.y += y;
 
         // Update Damage Bar
         this.bar.x = this.x;
@@ -80,11 +79,11 @@ rift.unit = function(x, y){
 		if ( rift.unit_selection.item == this ){
 			this.update_selection();
 		}
-    }
+    };
     
     object.location = function(){
         return { row:this.row(), col:this.col() };
-    }
+    };
 
     object.damage = function(damage){
         this.health -= damage;
@@ -95,33 +94,33 @@ rift.unit = function(x, y){
         } else {
             this.bar.update(this.health);
         }
-    }
+    };
 
     object.die = function(){
         this.list.remove(this);
-    }
+    };
 
 
 	object.update_selection = function() {
         rift.unit_selection.x = this.x;
         rift.unit_selection.y = this.y;
-	}
+	};
 
     object.select_item = function(){
 
         rift.unit_selection.item = object;
 		this.update_selection();
 		rift.selected_worker = object;
-    }
+    };
 
     return object;
-}
+};
 
 rift.enemy = function(x, y){
     var object = new rift.unit(x,y);
 
-    var anim = new jaws.Animation({sprite_sheet: "images/enemy_ball.png", frame_size: [32,32], frame_duration: 100})
-    object.anim_default = anim.slice(0,5)
+    var anim = new jaws.Animation({sprite_sheet: "images/enemy_ball.png", frame_size: [32,32], frame_duration: 100});
+    object.anim_default = anim.slice(0,5);
     object.setImage( object.anim_default.next() );
 
     object.list = rift.units;    
@@ -131,55 +130,69 @@ rift.enemy = function(x, y){
         object.missile = new rift.missile(this.x+(this.width/2),this.y+(this.height/2));
         object.missile.parent = this;
         rift.units.push(object.missile);
-    }
+    };
 
     object.act = function(){
-        this.setImage( this.anim_default.next() )
+        this.setImage( this.anim_default.next() );
         if ( ! object.missile ){
             this.shoot();
         }
-    }
+    };
 
     return object;
-}
+};
+
+rift.alien = function(x, y){
+	var object = rift.robot(x, y, "images/unit_alien1_32x32.png");
+	
+	return object;
+};
 
 rift.civilian = function(x, y){
 	var object = rift.robot(x, y, "images/unit_civilian_32x32.png");
 	
-    object.idle = function(){
+    object.act = function(){
         this.setImage( this.anim_default.next() );
 		// Find a random place to go
 		col = Math.floor((Math.random() * rift.tile_map.size[0]) );
 		row = Math.floor((Math.random() * rift.tile_map.size[1]) );
         var job = rift.job(rift.JOB_WALK, col, row);
 		
-		jaws.log("Col:"+col+ " Row:"+row)
 		addJob(job, this);
-    }
-	
+    };
+    
 	return object;
-}
+};
 
 rift.ranger = function(x, y){
 	return rift.robot(x, y, "images/unit_ranger_32x32.png");
-}
+};
 
 rift.robot = function(x, y, image){
 
     var object = new rift.unit(x,y);
+
+    object.max_action_points = 2;
+    object.action_points = object.max_action_points;
+
+    // Reset Action Points
+    object.reset_action_points = function(){
+        object.action_points = object.max_action_points;
+    };
 
     // Used for keeping track of actions, e.g. building stuff
     object.progress = 0;
     object.state = rift.STATE_IDLE;
     object.list = rift.workers;    
 
-    var anim = new jaws.Animation({sprite_sheet: image, frame_size: [32,32], frame_duration: 300})
-    object.anim_default = anim.slice(0,5)
-    object.anim_up = anim.slice(6,8)
-    object.anim_down = anim.slice(8,10)
-    object.anim_left = anim.slice(10,12)
-    object.anim_right = anim.slice(12,14)
-    object.anim_build = anim.slice(15,17)
+    // Animations
+    var anim = new jaws.Animation({sprite_sheet: image, frame_size: [32,32], frame_duration: 300});
+    object.anim_default = anim.slice(0,5);
+    object.anim_up = anim.slice(6,8);
+    object.anim_down = anim.slice(8,10);
+    object.anim_left = anim.slice(10,12);
+    object.anim_right = anim.slice(12,14);
+    object.anim_build = anim.slice(15,17);
 
     object.setImage( object.anim_default.next() );
 
@@ -201,41 +214,35 @@ rift.robot = function(x, y, image){
         default:
           jaws.log("ROBOT IN UNKNWON STATE! " + worker.state);
         }
-    }
+    };
 
     object.col = function(){
         return getTileNoFromCord(this.rect().x);
-    }
+    };
 
     object.row = function(){
         return getTileNoFromCord(this.rect().y);
-    }
-
-    object.calculate_line_of_sight = function(){
-        alert(1);
-
-        var matrix = exportTileMapToPathMatrix();
-    }
+    };
     
     object.find_path = function(goal){
 
         var matrix = exportTileMapToPathMatrix();
-        var start = {col: this.col(), row: this.row() }
+        var start = {col: this.col(), row: this.row() };
 
         matrix[start.row][start.col] = 1;
 
         var path = jspath.find_path(matrix, start, goal);
         return path;
-    }
+    };
 
     object.set_path = function(path){
         this.path = path;
-        if ( path != undefined ){
+        if ( path !== undefined ){
             this.path_index = path.length-2;
         } else {
             this.path_index = undefined;
         }
-    }
+    };
 
     object.stop_working = function(){
         this.set_path(undefined);
@@ -243,7 +250,7 @@ rift.robot = function(x, y, image){
         this.job.started = false;
         this.job = undefined;
         this.progress = 0;
-    }
+    };
 
     object.shoot = function(){
         if ( this.state == rift.SHOOTING ){
@@ -251,7 +258,7 @@ rift.robot = function(x, y, image){
 		}
 		// Kill job
 		this.job.die();
-	}
+	};
 
     object.walk = function(){
         if ( this.state == rift.STATE_WALKING ){
@@ -262,7 +269,7 @@ rift.robot = function(x, y, image){
                 var next_cell = this.path[this.path_index];
 
                 if ( rift.tile_map.check(next_cell.col, next_cell.row, "blocking", true)) {
-                    var goal = {col: this.job.col, row: this.job.row }
+                    var goal = {col: this.job.col, row: this.job.row };
                     var path = this.find_path(goal);
                     if ( path.length > 0 ){
                         this.set_path(path);
@@ -273,43 +280,44 @@ rift.robot = function(x, y, image){
                 }
             }
 
-            if ( this.path != undefined ) {
+            if ( this.path !== undefined ) {
                 var x = this.rect().x;
                 var y = this.rect().y;
-                var next_x = next_cell.col * rift.cell_size
-                var next_y = next_cell.row * rift.cell_size
+                var next_x = next_cell.col * rift.cell_size;
+                var next_y = next_cell.row * rift.cell_size;
 
                 var direction;
 
-                if ( next_x > x ) { direction = "right" }
-                if ( next_x < x ) { direction = "left" }
-                if ( next_y < y ) { direction = "up" }
-                if ( next_y > y ) { direction = "down" }
+                if ( next_x > x ) { direction = "right"; }
+                if ( next_x < x ) { direction = "left"; }
+                if ( next_y < y ) { direction = "up"; }
+                if ( next_y > y ) { direction = "down"; }
 
-                if(direction === "left"  ) { this.move(-1,0);  this.setImage(this.anim_left.next()) }
-                if(direction === "right" ) { this.move(1,0);   this.setImage(this.anim_right.next()) }
-                if(direction === "up"    ) { this.move(0, -1); this.setImage(this.anim_up.next()) }
-                if(direction === "down"  ) { this.move(0, 1);  this.setImage(this.anim_down.next()) }
+                if(direction === "left"  ) { this.move(-1,0);  this.setImage(this.anim_left.next()); }
+                if(direction === "right" ) { this.move(1,0);   this.setImage(this.anim_right.next()); }
+                if(direction === "up"    ) { this.move(0, -1); this.setImage(this.anim_up.next()); }
+                if(direction === "down"  ) { this.move(0, 1);  this.setImage(this.anim_down.next()); }
 
                 // If we are at the next square index.
                 // Update index
                 if ( next_x === x && next_y === y ){
-                    calculate_line_of_sight()
+                    // Todo: should only calcualte line of sight if it's a worker, and not a unit like civilian
+					calculate_line_of_sight();
                     this.path_index--;
                 }
             }
         }
-    }
+    };
 
     object.idle = function(){
-        this.setImage( this.anim_default.next() )
-    }
+        this.setImage( this.anim_default.next() );
+    };
 
     object.build = function(){
-            this.setImage( this.anim_build.next() )
+        this.setImage( this.anim_build.next() );
         this.progress++;
         if ( this.progress % 10 === 0 ){
-            this.job.setImage( this.job.anim_build.next() )
+            this.job.setImage( this.job.anim_build.next() );
         }
         if ( this.progress == 70 ){
             var building = rift.building(this.job.target, this.job.col, this.job.row);
@@ -317,7 +325,7 @@ rift.robot = function(x, y, image){
             rift.tile_map.push(building);
             this.job.die();
         }
-    }
+    };
 
     return object;
 };

@@ -1,29 +1,28 @@
 function Main() {
-    var fps
+    var fps;
 
 	// Used for indicating selection of a unit
-	rift.unit_selection
-	rift.unit_selection = new Sprite({image: "images/unit_selector.png" });
+	rift.unit_selection = new Sprite({image: "images/unit_selector_red.png" });
 
     // Setup Rangers
-    rift.workers.push(new rift.ranger(0,96))
-    rift.workers.push(new rift.ranger(0,64))
-    rift.workers.push(new rift.ranger(0,32))
-    rift.workers.push(new rift.ranger(0,0))
+    rift.workers.push(new rift.ranger(0,96));
+    rift.workers.push(new rift.ranger(0,64));
+    rift.workers.push(new rift.ranger(0,32));
+    rift.workers.push(new rift.ranger(0,0));
 
 	// Setup Civilians
-    rift.units.push(new rift.civilian(0,128))
+    //rift.units.push(new rift.civilian(0,128));
 	
 	// Setup Aliens
-	
+    rift.units.push(new rift.alien(0,160));
 
-	rift.workers.at(0).select_item();
+	//rift.workers.at(0).select_item();
 
     rift.action_menu = rift.menu(641, 0);
 
     /* Called once when a game state is activated. Use it for one-time setup code. */
     this.setup = function() {
-        fps = document.getElementById("fps")
+        fps = document.getElementById("fps");
         
         var tilemap_width = 20;
         var tilemap_height = 15;
@@ -35,10 +34,10 @@ function Main() {
                 var x = i*rift.cell_size;
                 var y = j*rift.cell_size;
 
-                if ( Math.floor((Math.random()*10)+1) > 8 && x != 0 ){
-                    rift.blocks.push( new Sprite({image: "images/block.png", x: x, y: y, blocking: true }) )
+                if ( Math.floor((Math.random()*20)+1) > 17 && x !== 0 ){
+                    rift.blocks.push( new Sprite({image: "images/building_wall.png", x: x, y: y, blocking: true }) );
                 } else {
-                    rift.blocks.push( new Sprite({image: "images/dirt.png", x: x, y: y, blocking: false}) )
+                    rift.blocks.push( new Sprite({image: "images/building_floor.png", x: x, y: y, blocking: false}) );
                 }
             }
         }
@@ -48,7 +47,7 @@ function Main() {
         rift.action_menu.add( new Sprite({image: "images/button_shoot.png" }), rift.JOB_SHOOT, "shoot");
 
         // A tilemap, each cell is 32x32 pixels. There's 10 such cells across and 10 downwards.
-        rift.tile_map = new jaws.TileMap({size: [tilemap_width,tilemap_height], cell_size: [32,32], scale: 0.5})
+        rift.tile_map = new jaws.TileMap({size: [tilemap_width,tilemap_height], cell_size: [32,32], scale: 0.5});
 
         // Extending Tilemap
         // Move these to a extend tilemap method
@@ -60,7 +59,7 @@ function Main() {
                 }
             });
             return checked_value;
-        }
+        };
 
         rift.tile_map.job = function(col, row){
             var found_job;
@@ -71,7 +70,7 @@ function Main() {
                 }
             });
             return found_job;
-        }
+        };
 
         rift.tile_map.unit = function(col, row){
             var found_unit;
@@ -81,7 +80,7 @@ function Main() {
                 }
             });
             return found_unit;
-        }
+        };
 
         rift.tile_map.find_free_neighbour = function(col, row){
             var y;
@@ -89,26 +88,30 @@ function Main() {
                 var xrow = row + this.row;
                 var xcol = col + this.col;
                 if ( xcol >= 0 && xrow >= 0 && rift.tile_map.check(xcol, xrow, "blocking", false) ){
-                    y = {row:xrow, col:xcol}
+                    y = {row:xrow, col:xcol};
                 }
             });
             return y;
-        }
+        };
 
         // Fit all items in array blocks into correct cells in the tilemap
         // Later on we can look them up really fast (see player.move)
-        rift.tile_map.push(rift.blocks)
+        rift.tile_map.push(rift.blocks);
 
         jaws.context.mozImageSmoothingEnabled = false;  // non-blurry, blocky retro scaling
         jaws.preventDefaultKeys(["up", "down", "left", "right", "space"]);
 
         // For Debugging
-        jaws.on_keydown("r", function(){rift.workers.push(new rift.ranger(0,0))})
-        jaws.on_keydown("e", function(){rift.units.push(new rift.enemy(0,0))})
+        jaws.on_keydown("r", function(){
+            rift.workers.push(new rift.ranger(0,0));
+            });
+        jaws.on_keydown("e", function(){
+            rift.units.push(new rift.enemy(0,0));
+            });
         
         // Activate line of sight
         calculate_line_of_sight();
-    }
+    };
 
     /* update() will get called each game tick with your specified FPS. Put game logic here. */
     this.update = function() {
@@ -121,44 +124,38 @@ function Main() {
             unit.act();
         });
 
-        rift.jobs.forEach(function(job){
-            // Start job
-            if ( job.started == false ) {
-                // Only look at the jobs if there are at least one available worker
-                if ( getAvailableWorker() != undefined ){
-                    // job.start();
-                }
-            }
-        });
-
         //jaws.forceInsideCanvas(player)
-        fps.innerHTML = jaws.game_loop.fps
-    }
+        fps.innerHTML = jaws.game_loop.fps;
+    };
 
     /* Directly after each update draw() will be called. Put all your on-screen operations here. */
     this.draw = function() {
-        jaws.clear()
-        rift.blocks.draw()
-        rift.buildings.draw()
-        rift.jobs.draw()
+        jaws.clear();
+        rift.blocks.draw();
+        rift.buildings.draw();
+        rift.jobs.draw();
         // Disabling bars until we need them again
         //rift.bars.draw()
-        rift.action_menu.draw()
+        rift.action_menu.draw();
 
-        rift.units.draw()
+        rift.units.draw();
 
-        rift.blocker_tiles.draw()
+        rift.blocker_tiles.draw();
 
-        if ( rift.selection.item != undefined ){
+        if ( rift.selection.item !== undefined ){
             rift.selection.draw();
         }
 
-		// Units
+		
 		// First draw selection and then unit on top
-        if ( rift.unit_selection.item != undefined ){
+        if ( rift.unit_selection.item !== undefined ){
             rift.unit_selection.draw();
-        }
-        rift.workers.draw()
+            
+            // Update Action Points
+            rift.update_html("action-points", rift.unit_selection.item.action_points);
 
-    }
+        }
+        rift.workers.draw();
+
+    };
 }

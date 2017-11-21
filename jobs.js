@@ -3,42 +3,48 @@ rift.job = function(type, col, row){
 
     var object = {};
 
-    object = new jaws.Sprite({x:col*rift.cell_size, y:row*rift.cell_size, scale: 1})
+    object = new jaws.Sprite({
+        x:col*rift.cell_size,
+        y:row*rift.cell_size, scale: 1
+        });
+    
     object.started = false;
     object.type = type;
     object.col = col;
     object.row = row;
 
-    var anim = new jaws.Animation({sprite_sheet: "images/job_default.png", frame_size: [rift.cell_size,rift.cell_size], frame_duration: 100})
-    object.anim_default = anim.slice(0,1)
-    object.anim_build = anim.slice(1,9)
+    var anim = new jaws.Animation({sprite_sheet: "images/job_default.png", frame_size: [rift.cell_size,rift.cell_size], frame_duration: 100});
+    object.anim_default = anim.slice(0,1);
+    object.anim_build = anim.slice(1,9);
 
     object.setImage( object.anim_default.next() );
 
     object.add = function(){
         rift.jobs.push(this);
-    }
+    };
 
     object.die = function(){
         if ( this.worker ) {
             this.worker.stop_working();
         }
         rift.jobs.remove(this);
-    }
+    };
 
     object.work = function(worker){
         object.type.work(this, worker);
-    }
+    };
 
     object.start = function( worker ) {
-        var goal = {col: this.col, row: this.row }
-
+        var goal = {col: this.col, row: this.row };
+        
 		if ( this.type.do_it(worker, goal) ){
             worker.job = this;
             this.worker = worker;
             this.started = true;
+            // Remove an action point
+            this.worker.action_points -= 1;
 		}
-    }
+    };
 
     return object;
 };
